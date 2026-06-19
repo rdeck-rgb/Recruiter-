@@ -1,17 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import type { DeskManual } from "@/lib/types";
 
-// This route calls the Claude API, which can take a while on large jobs — give
+// This route calls the Gemini API, which can take a while on large jobs — give
 // it room beyond the default serverless budget.
 export const maxDuration = 120;
 export const runtime = "nodejs";
 
-// NOTE ON MODEL CHOICE:
-// The original spec named `claude-3-5-sonnet-20241022`, but that model was
-// retired on 2025-10-28 and now returns a 404. Its documented drop-in
-// replacement is `claude-sonnet-4-6`, which is what we use here.
-const MODEL = "claude-sonnet-4-6";
+// Google Gemini model. gemini-2.5-flash is fast and inexpensive and handles
+// this structured-generation task well. Swap for "gemini-2.5-pro" if you want
+// higher quality at higher cost.
+const MODEL = "gemini-2.5-flash";
 
 const SYSTEM_PROMPT = `You are an elite Executive Recruiter and Sourcing Architect. Analyze the provided job description. Output a JSON object with two keys: \`blueprintMarkdown\` and \`scorecardData\`.
 
@@ -45,11 +44,28 @@ CRITICAL OUTPUT RULES: Respond with ONLY the raw JSON object. Do not wrap it in 
 
 // Pull the JSON object out of the model's text, tolerating accidental markdown
 // code fences or stray prose around it.
+//
+// NOTE: the blueprint markdown itself contains fenced ``` code blocks (the
+// Boolean strings), so we must NOT naively grab the first ``` fence — that would
+// match a code block *inside* the JSON. Strategy: parse as-is first (Gemini's
+// JSON mode returns clean JSON), then only fall back to fence/brace extraction.
 function extractJson(text: string): string {
   const trimmed = text.trim();
-  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (fenceMatch) return fenceMatch[1].trim();
 
+  // Fast path: already valid JSON (the normal case with responseMimeType json).
+  try {
+    JSON.parse(trimmed);
+    return trimmed;
+  } catch {
+    // fall through to recovery heuristics
+  }
+
+  // Whole response wrapped in a single ```json … ``` fence (anchored to start/end
+  // so inner code blocks can't match).
+  const wholeFence = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  if (wholeFence) return wholeFence[1].trim();
+
+  // Last resort: take everything between the outermost braces.
   const start = trimmed.indexOf("{");
   const end = trimmed.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
@@ -59,9 +75,10 @@ function extractJson(text: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
     return NextResponse.json(
-      { error: "Server is missing ANTHROPIC_API_KEY. Set it in your environment (.env.local)." },
+      { error: "Server is missing GEMINI_API_KEY. Set it in your environment (.env.local)." },
       { status: 500 },
     );
   }
@@ -81,31 +98,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const ai = new GoogleGenAI({ apiKey });
 
   let rawText: string;
   try {
-    const response = await client.messages.create({
+    const response = await ai.models.generateContent({
       model: MODEL,
-      max_tokens: 16000,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Here is the raw job description to analyze:\n\n<job_description>\n${jobDescription}\n</job_description>`,
-        },
-      ],
+      contents: `Here is the raw job description to analyze:\n\n<job_description>\n${jobDescription}\n</job_description>`,
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        responseMimeType: "application/json",
+        maxOutputTokens: 16000,
+        // Disable "thinking" so the full output budget goes to the JSON answer
+        // (avoids truncation) and keeps latency/cost down.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
 
-    if ((response.stop_reason as string) === "refusal") {
-      return NextResponse.json(
-        { error: "The model declined to analyze this content. Try a different job description." },
-        { status: 422 },
-      );
-    }
-
-    const textBlock = response.content.find((b) => b.type === "text");
-    rawText = textBlock && textBlock.type === "text" ? textBlock.text : "";
+    rawText = response.text ?? "";
 
     if (!rawText) {
       return NextResponse.json(
@@ -114,24 +124,30 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (err) {
-    // Map common Anthropic SDK errors to clear messages.
-    if (err instanceof Anthropic.AuthenticationError) {
-      return NextResponse.json({ error: "Invalid Anthropic API key." }, { status: 500 });
-    }
-    if (err instanceof Anthropic.RateLimitError) {
+    const status = (err as { status?: number })?.status;
+    const message = String((err as { message?: unknown })?.message ?? "");
+
+    if (status === 429 || /quota|rate.?limit|resource.?exhausted/i.test(message)) {
       return NextResponse.json(
-        { error: "Rate limited by the Anthropic API. Wait a moment and try again." },
+        { error: "Rate limited / quota exceeded on the Gemini API. Wait a moment and try again." },
         { status: 429 },
       );
     }
-    if (err instanceof Anthropic.APIError) {
+    if (
+      status === 401 ||
+      status === 403 ||
+      /api[_ ]?key|permission|unauthor|invalid.?argument/i.test(message)
+    ) {
       return NextResponse.json(
-        { error: `Anthropic API error (${err.status ?? "?"}): ${err.message}` },
-        { status: 502 },
+        { error: "Invalid Gemini API key or insufficient permissions." },
+        { status: 500 },
       );
     }
-    console.error("Unexpected error calling Anthropic:", err);
-    return NextResponse.json({ error: "Unexpected server error while contacting the AI." }, { status: 500 });
+    console.error("Unexpected error calling Gemini:", err);
+    return NextResponse.json(
+      { error: `Gemini API error: ${message || "unexpected server error"}` },
+      { status: 502 },
+    );
   }
 
   // Defensive parse + shape validation: strip any fences/prose, then parse.
