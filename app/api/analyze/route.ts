@@ -101,6 +101,7 @@ export async function POST(req: NextRequest) {
   const ai = new GoogleGenAI({ apiKey });
 
   let rawText: string;
+  let finishReason: string | undefined;
   try {
     const response = await ai.models.generateContent({
       model: MODEL,
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const finishReason = response.candidates?.[0]?.finishReason;
+    finishReason = response.candidates?.[0]?.finishReason as string | undefined;
     rawText = response.text ?? "";
 
     // If the model hit the output cap, the JSON is incomplete — say so clearly
@@ -170,8 +171,14 @@ export async function POST(req: NextRequest) {
   try {
     data = JSON.parse(extractJson(rawText)) as DeskManual;
   } catch {
+    // TEMP DIAGNOSTIC: embed what the model actually returned into the visible
+    // error message so we can see why parsing failed.
     return NextResponse.json(
-      { error: "The AI returned malformed JSON. Please try again." },
+      {
+        error:
+          `Malformed JSON [DEBUG] finishReason=${finishReason ?? "?"} len=${rawText.length} | ` +
+          `HEAD>>> ${rawText.slice(0, 300)} <<< | TAIL>>> ${rawText.slice(-300)} <<<`,
+      },
       { status: 502 },
     );
   }
@@ -183,7 +190,11 @@ export async function POST(req: NextRequest) {
     !data?.scorecardData?.tier3
   ) {
     return NextResponse.json(
-      { error: "The AI response was missing required sections. Please try again." },
+      {
+        error:
+          `Missing sections [DEBUG] finishReason=${finishReason ?? "?"} ` +
+          `keys=${JSON.stringify(Object.keys(data ?? {}))}`,
+      },
       { status: 502 },
     );
   }
