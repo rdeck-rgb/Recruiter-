@@ -2,7 +2,7 @@
   "name": "recruiter-desk-manual",
   "version": "1.0.0",
   "private": true,
-  "description": "Recruiter Desk Manual & Sourcing System — an AI Sourcing Architect powered by the Claude API.",
+  "description": "Recruiter Desk Manual & Sourcing System — an AI Sourcing Architect powered by the Google Gemini API.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
