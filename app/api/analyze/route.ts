@@ -40,7 +40,7 @@ The exact JSON shape you must return is:
   }
 }
 
-CRITICAL OUTPUT RULES: Respond with ONLY the raw JSON object. Do not wrap it in markdown code fences. Do not add any text before or after the JSON. The response must be parseable by JSON.parse().`;
+CRITICAL OUTPUT RULES: Respond with ONLY the raw JSON object. Do not wrap it in markdown code fences. Do not add any text before or after the JSON. The response must be parseable by JSON.parse(). Keep the writing focused and avoid unnecessary length so the complete JSON object always fits in the response without being cut off.`;
 
 // Pull the JSON object out of the model's text, tolerating accidental markdown
 // code fences or stray prose around it.
@@ -108,14 +108,29 @@ export async function POST(req: NextRequest) {
       config: {
         systemInstruction: SYSTEM_PROMPT,
         responseMimeType: "application/json",
-        maxOutputTokens: 16000,
+        // Generous cap so the full manual + scorecard fits without truncation
+        // (truncated output = incomplete, unparseable JSON).
+        maxOutputTokens: 32000,
         // Disable "thinking" so the full output budget goes to the JSON answer
-        // (avoids truncation) and keeps latency/cost down.
+        // and keeps latency/cost down.
         thinkingConfig: { thinkingBudget: 0 },
       },
     });
 
+    const finishReason = response.candidates?.[0]?.finishReason;
     rawText = response.text ?? "";
+
+    // If the model hit the output cap, the JSON is incomplete — say so clearly
+    // instead of returning a confusing "malformed JSON" error.
+    if (finishReason === "MAX_TOKENS") {
+      return NextResponse.json(
+        {
+          error:
+            "The generated manual was too long and got cut off. Try a shorter or more focused job description, then generate again.",
+        },
+        { status: 502 },
+      );
+    }
 
     if (!rawText) {
       return NextResponse.json(
