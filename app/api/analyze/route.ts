@@ -100,104 +100,92 @@ export async function POST(req: NextRequest) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  let rawText: string;
-  let finishReason: string | undefined;
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: `Here is the raw job description to analyze:\n\n<job_description>\n${jobDescription}\n</job_description>`,
-      config: {
-        systemInstruction: SYSTEM_PROMPT,
-        responseMimeType: "application/json",
-        // Generous cap so the full manual + scorecard fits without truncation
-        // (truncated output = incomplete, unparseable JSON).
-        maxOutputTokens: 32000,
-        // Disable "thinking" so the full output budget goes to the JSON answer
-        // and keeps latency/cost down.
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
+  const userPrompt = `Here is the raw job description to analyze:\n\n<job_description>\n${jobDescription}\n</job_description>`;
 
-    finishReason = response.candidates?.[0]?.finishReason as string | undefined;
-    rawText = response.text ?? "";
+  const isValid = (d: DeskManual | null | undefined): d is DeskManual =>
+    !!(
+      d &&
+      typeof d.blueprintMarkdown === "string" &&
+      d.blueprintMarkdown.length > 0 &&
+      d.scorecardData?.tier1 &&
+      d.scorecardData?.tier2 &&
+      d.scorecardData?.tier3
+    );
 
-    // If the model hit the output cap, the JSON is incomplete — say so clearly
-    // instead of returning a confusing "malformed JSON" error.
-    if (finishReason === "MAX_TOKENS") {
-      return NextResponse.json(
-        {
-          error:
-            "The generated manual was too long and got cut off. Try a shorter or more focused job description, then generate again.",
+  // Gemini occasionally returns truncated/unparseable JSON. A clean generation
+  // succeeds the large majority of the time, so retry a couple of times before
+  // giving up — this makes intermittent failures invisible to the user. Capped
+  // at 2 attempts to stay within serverless time limits.
+  const MAX_ATTEMPTS = 2;
+  let lastFailure = "unknown error";
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    let rawText = "";
+    let finishReason: string | undefined;
+
+    try {
+      const response = await ai.models.generateContent({
+        model: MODEL,
+        contents: userPrompt,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+          // Generous cap so the full manual + scorecard fits without truncation.
+          maxOutputTokens: 32000,
+          // Disable "thinking" so the full budget goes to the JSON answer.
+          thinkingConfig: { thinkingBudget: 0 },
         },
+      });
+      finishReason = response.candidates?.[0]?.finishReason as string | undefined;
+      rawText = response.text ?? "";
+    } catch (err) {
+      // API-level errors won't improve on retry — map and return immediately.
+      const status = (err as { status?: number })?.status;
+      const message = String((err as { message?: unknown })?.message ?? "");
+
+      if (status === 429 || /quota|rate.?limit|resource.?exhausted/i.test(message)) {
+        return NextResponse.json(
+          { error: "Rate limited / quota exceeded on the Gemini API. Wait a moment and try again." },
+          { status: 429 },
+        );
+      }
+      if (
+        status === 401 ||
+        status === 403 ||
+        /api[_ ]?key|permission|unauthor|invalid.?argument/i.test(message)
+      ) {
+        return NextResponse.json(
+          { error: "Invalid Gemini API key or insufficient permissions." },
+          { status: 500 },
+        );
+      }
+      console.error("Unexpected error calling Gemini:", err);
+      return NextResponse.json(
+        { error: `Gemini API error: ${message || "unexpected server error"}` },
         { status: 502 },
       );
     }
 
-    if (!rawText) {
-      return NextResponse.json(
-        { error: "The model returned an empty response. Please try again." },
-        { status: 502 },
-      );
+    // Parse + validate shape. On any failure, record why and retry.
+    try {
+      const parsed = JSON.parse(extractJson(rawText)) as DeskManual;
+      if (isValid(parsed)) {
+        return NextResponse.json(parsed);
+      }
+      lastFailure = `incomplete response (finishReason=${finishReason ?? "?"})`;
+    } catch {
+      lastFailure =
+        finishReason === "MAX_TOKENS"
+          ? "the manual ran too long and got cut off"
+          : `unparseable response (finishReason=${finishReason ?? "?"})`;
     }
-  } catch (err) {
-    const status = (err as { status?: number })?.status;
-    const message = String((err as { message?: unknown })?.message ?? "");
-
-    if (status === 429 || /quota|rate.?limit|resource.?exhausted/i.test(message)) {
-      return NextResponse.json(
-        { error: "Rate limited / quota exceeded on the Gemini API. Wait a moment and try again." },
-        { status: 429 },
-      );
-    }
-    if (
-      status === 401 ||
-      status === 403 ||
-      /api[_ ]?key|permission|unauthor|invalid.?argument/i.test(message)
-    ) {
-      return NextResponse.json(
-        { error: "Invalid Gemini API key or insufficient permissions." },
-        { status: 500 },
-      );
-    }
-    console.error("Unexpected error calling Gemini:", err);
-    return NextResponse.json(
-      { error: `Gemini API error: ${message || "unexpected server error"}` },
-      { status: 502 },
-    );
+    // fall through to the next attempt
   }
 
-  // Defensive parse + shape validation: strip any fences/prose, then parse.
-  let data: DeskManual;
-  try {
-    data = JSON.parse(extractJson(rawText)) as DeskManual;
-  } catch {
-    // TEMP DIAGNOSTIC: embed what the model actually returned into the visible
-    // error message so we can see why parsing failed.
-    return NextResponse.json(
-      {
-        error:
-          `Malformed JSON [DEBUG] finishReason=${finishReason ?? "?"} len=${rawText.length} | ` +
-          `HEAD>>> ${rawText.slice(0, 300)} <<< | TAIL>>> ${rawText.slice(-300)} <<<`,
-      },
-      { status: 502 },
-    );
-  }
-
-  if (
-    !data?.blueprintMarkdown ||
-    !data?.scorecardData?.tier1 ||
-    !data?.scorecardData?.tier2 ||
-    !data?.scorecardData?.tier3
-  ) {
-    return NextResponse.json(
-      {
-        error:
-          `Missing sections [DEBUG] finishReason=${finishReason ?? "?"} ` +
-          `keys=${JSON.stringify(Object.keys(data ?? {}))}`,
-      },
-      { status: 502 },
-    );
-  }
-
-  return NextResponse.json(data);
+  return NextResponse.json(
+    {
+      error: `The AI response couldn't be processed after ${MAX_ATTEMPTS} attempts (${lastFailure}). Please try again — if it persists, use a shorter job description.`,
+    },
+    { status: 502 },
+  );
 }
