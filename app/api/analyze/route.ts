@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import type { DeskManual } from "@/lib/types";
 
@@ -74,6 +74,48 @@ function extractJson(text: string): string {
   return trimmed;
 }
 
+// Strict response schema. With `responseSchema`, Gemini uses constrained
+// decoding to GUARANTEE valid, schema-conforming JSON (correctly escaped),
+// which eliminates the intermittent "unparseable JSON" failures that
+// responseMimeType alone allowed.
+const QUESTION_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    id: { type: Type.STRING },
+    question: { type: Type.STRING },
+    lookFor: { type: Type.STRING },
+    redFlags: { type: Type.STRING },
+  },
+  required: ["id", "question", "lookFor", "redFlags"],
+  propertyOrdering: ["id", "question", "lookFor", "redFlags"],
+};
+
+const TIER_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    title: { type: Type.STRING },
+    description: { type: Type.STRING },
+    questions: { type: Type.ARRAY, items: QUESTION_SCHEMA },
+  },
+  required: ["title", "description", "questions"],
+  propertyOrdering: ["title", "description", "questions"],
+};
+
+const RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    blueprintMarkdown: { type: Type.STRING },
+    scorecardData: {
+      type: Type.OBJECT,
+      properties: { tier1: TIER_SCHEMA, tier2: TIER_SCHEMA, tier3: TIER_SCHEMA },
+      required: ["tier1", "tier2", "tier3"],
+      propertyOrdering: ["tier1", "tier2", "tier3"],
+    },
+  },
+  required: ["blueprintMarkdown", "scorecardData"],
+  propertyOrdering: ["blueprintMarkdown", "scorecardData"],
+};
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -130,6 +172,8 @@ export async function POST(req: NextRequest) {
         config: {
           systemInstruction: SYSTEM_PROMPT,
           responseMimeType: "application/json",
+          // Constrained decoding — guarantees valid, schema-conforming JSON.
+          responseSchema: RESPONSE_SCHEMA,
           // Generous cap so the full manual + scorecard fits without truncation.
           maxOutputTokens: 32000,
           // Disable "thinking" so the full budget goes to the JSON answer.
