@@ -1,0 +1,47 @@
+name: Email Warm-up
+
+# Runs the warm-up automation once every day.
+# Requires a repository secret named WARMUP_CONFIG_JSON containing the full
+# JSON config (mailboxes + app passwords). See warmup/README.md.
+
+on:
+  schedule:
+    # 14:15 UTC daily. GitHub cron is UTC-only and best-effort (may run late
+    # during peak load). The minute is deliberately not :00 to avoid the busy
+    # top-of-hour queue. Adjust to taste.
+    - cron: "15 14 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Log actions without sending or moving anything"
+        type: boolean
+        default: false
+
+concurrency:
+  group: email-warmup
+  cancel-in-progress: false
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run warm-up
+        env:
+          WARMUP_CONFIG_JSON: ${{ secrets.WARMUP_CONFIG_JSON }}
+          WARMUP_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          if [ -z "${WARMUP_CONFIG_JSON}" ]; then
+            echo "::error::Missing repository secret WARMUP_CONFIG_JSON."
+            echo "Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python warmup/warmup.py

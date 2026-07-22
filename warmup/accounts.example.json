@@ -1,0 +1,48 @@
+{
+  "_comment": [
+    "Copy this file to accounts.json and fill in each app_password.",
+    "accounts.json is gitignored so real credentials never get committed.",
+    "app_password = a Google Workspace 'App Password' (16 chars), NOT the",
+    "normal login password. See warmup/README.md for how to create them.",
+    "For GitHub Actions, DO NOT use a file -- paste the whole JSON (with real",
+    "app passwords) into the WARMUP_CONFIG_JSON repository secret instead."
+  ],
+
+  "start_date": "2026-07-22",
+  "token": "warmup-adgrant-2026",
+
+  "min_per_account": 2,
+  "max_per_account": 20,
+  "ramp_step": 2,
+  "reply_probability": 0.4,
+  "max_send_delay_seconds": 12,
+
+  "seed_recipients": [
+    "rdeck@engagestaff.com",
+    "ree@click2-ai.com",
+    "ziga@engagestaff.com",
+    "chris@engagestaff.com",
+    "rdeck1031@gmail.com",
+    "rdeck7420@gmail.com"
+  ],
+
+  "accounts": [
+    { "name": "Melanie Deck",  "email": "melanie@adgrantexperts.com",   "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Melanie Deck",  "email": "melanie@adgrantsupport.com",   "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Melanie Deck",  "email": "mel@adgrantpartner.com",       "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Melanie Deck",  "email": "mdeck@adgrantconsultant.com",  "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Melanie Deck",  "email": "melanie@missiongrant.com",     "app_password": "REPLACE_WITH_APP_PASSWORD" },
+
+    { "name": "Ree Davydova",  "email": "ree@missiongrant.com",         "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Ree Davydova",  "email": "rdavydova@adgrantconsultant.com", "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Ree Davydova",  "email": "ree@adgrantpartner.com",       "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Ree Davydova",  "email": "reedavydova@adgrantexperts.com", "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Ree Davydova",  "email": "ree@adgrantsupport.com",       "app_password": "REPLACE_WITH_APP_PASSWORD" },
+
+    { "name": "Robert Deck",   "email": "rdeck@adgrantconsultant.com",  "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Robert Deck",   "email": "rob@adgrantsupport.com",       "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Robert Deck",   "email": "rdeck@adgrantexperts.com",     "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Robert Deck",   "email": "rdeck@missiongrant.com",       "app_password": "REPLACE_WITH_APP_PASSWORD" },
+    { "name": "Robert Deck",   "email": "robert@adgrantpartner.com",    "app_password": "REPLACE_WITH_APP_PASSWORD" }
+  ]
+}

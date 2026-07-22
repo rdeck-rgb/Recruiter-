@@ -26,3 +26,11 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# email warm-up: never commit real mailbox credentials
+warmup/accounts.json
+warmup/*.local.json
+
+# python
+__pycache__/
+*.pyc
