@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Click2ai — Google Ad Grants Onboarding Form</title>
+<meta name="description" content="Client onboarding intake for the Google Ad Grants program: eligibility, Google accounts, website tracking, campaign goals, and compliance acknowledgements." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M22 11.5a7 7 0 1 0 0 9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+<style>
+/* ---------------------------------------------------------------------------
+   Brand tokens — swap these for the Click2ai palette.
+   Everything else in this file derives from them.
+--------------------------------------------------------------------------- */
+:root {
+  --brand:          #2563eb;
+  --brand-dark:     #1d4ed8;
+  --brand-soft:     #eff6ff;
+  --brand-border:   #bfdbfe;
+
+  --bg:             #f1f5f9;
+  --surface:        #ffffff;
+  --surface-alt:    #f8fafc;
+  --text:           #0f172a;
+  --text-muted:     #64748b;
+  --border:         #e2e8f0;
+  --border-strong:  #cbd5e1;
+
+  --danger:         #dc2626;
+  --danger-soft:    #fef2f2;
+  --danger-border:  #fecaca;
+  --success:        #15803d;
+  --success-soft:   #f0fdf4;
+  --success-border: #bbf7d0;
+  --warn:           #b45309;
+  --warn-soft:      #fffbeb;
+  --warn-border:    #fde68a;
+
+  --radius:         12px;
+  --radius-sm:      8px;
+  --shadow:         0 1px 2px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .06);
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand-soft:     #172554;
+    --brand-border:   #1e40af;
+    --bg:             #0b1120;
+    --surface:        #0f172a;
+    --surface-alt:    #131f36;
+    --text:           #e2e8f0;
+    --text-muted:     #94a3b8;
+    --border:         #1e293b;
+    --border-strong:  #334155;
+    --danger-soft:    #2a1215;
+    --danger-border:  #7f1d1d;
+    --success-soft:   #04240f;
+    --success-border: #14532d;
+    --warn-soft:      #2a1c05;
+    --warn-border:    #78350f;
+    --shadow:         0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Author `display` rules below (.btn, .steps-nav, .field …) outrank the UA
+   [hidden] rule, so hiding by attribute needs to win explicitly. */
+[hidden] { display: none !important; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Layout ------------------------------------------------------------- */
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 20px 80px; }
+
+.masthead {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.masthead-inner {
+  max-width: 880px; margin: 0 auto; padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+.logo svg { display: block; }
+.logo-sub { font-weight: 500; color: var(--text-muted); font-size: .875rem; }
+.save-state {
+  margin-left: auto; font-size: .8125rem; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px; min-height: 20px;
+}
+.save-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex: none; }
+
+/* --- Progress ----------------------------------------------------------- */
+.progress { padding: 0 0 2px; }
+.progress-track {
+  height: 4px; background: var(--border); border-radius: 99px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; width: 0%; background: var(--brand); border-radius: 99px;
+  transition: width .35s cubic-bezier(.4,0,.2,1);
+}
+.steps-nav {
+  display: flex; gap: 4px; overflow-x: auto; padding: 10px 0 2px;
+  scrollbar-width: thin;
+}
+.step-chip {
+  flex: none; display: flex; align-items: center; gap: 7px;
+  padding: 6px 11px; border-radius: 99px; border: 1px solid transparent;
+  background: none; color: var(--text-muted);
+  font: inherit; font-size: .8125rem; cursor: pointer; white-space: nowrap;
+}
+.step-chip:hover:not(:disabled) { background: var(--surface-alt); color: var(--text); }
+.step-chip:disabled { cursor: default; opacity: .55; }
+.step-chip[aria-current="step"] {
+  background: var(--brand-soft); border-color: var(--brand-border);
+  color: var(--brand-dark); font-weight: 600;
+}
+@media (prefers-color-scheme: dark) {
+  .step-chip[aria-current="step"] { color: #93c5fd; }
+}
+.chip-num {
+  width: 20px; height: 20px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--border); color: var(--text-muted);
+  font-size: .6875rem; font-weight: 700;
+}
+.step-chip[aria-current="step"] .chip-num { background: var(--brand); color: #fff; }
+.step-chip.is-done .chip-num { background: var(--success); color: #fff; }
+
+/* --- Cards / sections --------------------------------------------------- */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 28px; margin-top: 22px;
+}
+.intro h1 { margin: 0 0 8px; font-size: 1.625rem; letter-spacing: -.02em; }
+.intro p { margin: 0 0 14px; color: var(--text-muted); }
+.intro p:last-child { margin-bottom: 0; }
+
+fieldset.step { border: 0; margin: 0; padding: 0; }
+fieldset.step[hidden] { display: none; }
+.step-head { margin-bottom: 22px; }
+.step-eyebrow {
+  font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--brand); margin-bottom: 6px;
+}
+.step-head legend, .step-title { font-size: 1.3rem; font-weight: 700; letter-spacing: -.015em; padding: 0; margin: 0 0 6px; }
+.step-head p { margin: 0; color: var(--text-muted); font-size: .9375rem; }
+
+/* --- Fields ------------------------------------------------------------- */
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid > .full { grid-column: 1 / -1; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > label, .group-label {
+  font-size: .875rem; font-weight: 600; letter-spacing: -.005em;
+}
+.req { color: var(--danger); margin-left: 2px; }
+.hint { font-size: .8125rem; color: var(--text-muted); }
+
+input[type="text"], input[type="email"], input[type="tel"], input[type="url"],
+input[type="number"], input[type="date"], select, textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text);
+  font: inherit; font-size: .9375rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+select { appearance: none; padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent);
+}
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+input[aria-invalid="true"]:focus, select[aria-invalid="true"]:focus, textarea[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+}
+::placeholder { color: var(--text-muted); opacity: .8; }
+
+.error-msg {
+  display: none; font-size: .8125rem; color: var(--danger); font-weight: 500;
+}
+.field.has-error .error-msg, .choice-group.has-error .error-msg { display: block; }
+
+/* Radio / checkbox groups */
+.choice-group { display: flex; flex-direction: column; gap: 8px; }
+.choice-list { display: flex; flex-direction: column; gap: 8px; }
+.choice-list.cols { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+@media (max-width: 640px) { .choice-list.cols { grid-template-columns: 1fr; } }
+
+.choice {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 13px; border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); cursor: pointer;
+  background: var(--surface); transition: border-color .15s, background .15s;
+}
+.choice:hover { border-color: var(--brand); }
+.choice input { margin: 3px 0 0; flex: none; accent-color: var(--brand); width: 16px; height: 16px; }
+.choice:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
+.choice:has(input:focus-visible) { box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent); }
+.choice-text { font-size: .9rem; }
+.choice-text small { display: block; color: var(--text-muted); font-size: .8125rem; margin-top: 2px; }
+
+/* Callouts */
+.callout {
+  display: flex; gap: 11px; padding: 13px 15px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface-alt);
+  font-size: .875rem; margin-top: 4px;
+}
+.callout svg { flex: none; margin-top: 2px; }
+.callout a { color: inherit; }
+.callout.info    { background: var(--brand-soft);   border-color: var(--brand-border); }
+.callout.warn    { background: var(--warn-soft);    border-color: var(--warn-border);  color: var(--warn); }
+.callout.danger  { background: var(--danger-soft);  border-color: var(--danger-border);color: var(--danger); }
+.callout.success { background: var(--success-soft); border-color: var(--success-border);color: var(--success); }
+.callout strong { display: block; margin-bottom: 2px; }
+@media (prefers-color-scheme: dark) {
+  .callout.warn { color: #fcd34d; }
+  .callout.danger { color: #fca5a5; }
+  .callout.success { color: #86efac; }
+}
+
+[data-show-if][hidden] { display: none; }
+
+.divider { height: 1px; background: var(--border); border: 0; margin: 24px 0; }
+
+/* --- Compliance list ---------------------------------------------------- */
+.policy-list { display: flex; flex-direction: column; gap: 9px; margin: 0; padding: 0; }
+.policy-item {
+  display: flex; gap: 11px; align-items: flex-start;
+  padding: 12px 14px; border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); cursor: pointer;
+}
+.policy-item:has(input:checked) { border-color: var(--success); background: var(--success-soft); }
+.policy-item input { margin: 3px 0 0; flex: none; accent-color: var(--success); width: 16px; height: 16px; }
+.policy-item .policy-text { font-size: .875rem; }
+.policy-item .policy-text strong { display: block; margin-bottom: 2px; font-size: .9rem; }
+.policy-item .policy-text span { color: var(--text-muted); }
+@media (prefers-color-scheme: dark) {
+  .policy-item:has(input:checked) .policy-text span { color: #a7d8b4; }
+}
+
+/* --- Review ------------------------------------------------------------- */
+.review-group { margin-bottom: 22px; }
+.review-group:last-child { margin-bottom: 0; }
+.review-group h3 {
+  font-size: .75rem; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--brand); margin: 0 0 10px; font-weight: 700;
+}
+.review-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.review-table tr { border-bottom: 1px solid var(--border); }
+.review-table tr:last-child { border-bottom: 0; }
+.review-table th {
+  text-align: left; font-weight: 500; color: var(--text-muted);
+  padding: 9px 12px 9px 0; width: 45%; vertical-align: top;
+}
+.review-table td { padding: 9px 0; vertical-align: top; white-space: pre-wrap; word-break: break-word; }
+.review-table td.empty { color: var(--text-muted); font-style: italic; }
+.review-edit {
+  background: none; border: 0; color: var(--brand); font: inherit; font-size: .8125rem;
+  cursor: pointer; padding: 0; text-decoration: underline; margin-left: 8px; font-weight: 600;
+}
+
+/* --- Buttons ------------------------------------------------------------ */
+.actions {
+  display: flex; gap: 10px; align-items: center;
+  margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.actions .spacer { flex: 1 1 auto; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid transparent;
+  font: inherit; font-size: .9375rem; font-weight: 600; cursor: pointer;
+  transition: background .15s, border-color .15s, opacity .15s;
+}
+.btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.btn-ghost { background: transparent; border-color: var(--border-strong); color: var(--text); }
+.btn-ghost:hover { background: var(--surface-alt); }
+.btn-link {
+  background: none; border: 0; color: var(--text-muted); font: inherit;
+  font-size: .8125rem; cursor: pointer; text-decoration: underline; padding: 6px;
+}
+.btn-link:hover { color: var(--text); }
+
+.form-error {
+  display: none; margin-top: 16px; padding: 12px 15px;
+  border-radius: var(--radius-sm); background: var(--danger-soft);
+  border: 1px solid var(--danger-border); color: var(--danger);
+  font-size: .875rem; font-weight: 500;
+}
+.form-error.show { display: block; }
+
+/* --- Success ------------------------------------------------------------ */
+.done { text-align: center; padding: 20px 8px; }
+.done-icon {
+  width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 18px;
+  background: var(--success-soft); border: 1px solid var(--success-border);
+  display: grid; place-items: center;
+}
+.done h2 { margin: 0 0 8px; font-size: 1.35rem; letter-spacing: -.015em; }
+.done p { margin: 0 auto 18px; color: var(--text-muted); max-width: 46ch; }
+.done-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+.footnote {
+  margin-top: 22px; text-align: center;
+  font-size: .8125rem; color: var(--text-muted);
+}
+.footnote a { color: var(--brand); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media print {
+  .masthead, .actions, .steps-nav, .progress, .footnote, .btn { display: none !important; }
+  body { background: #fff; }
+  .card { box-shadow: none; border: 0; padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="logo">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="var(--brand)"/>
+        <path d="M22 11.5a7 7 0 1 0 0 9" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+      Click2ai
+      <span class="logo-sub">Ad Grants Onboarding</span>
+    </span>
+    <span class="save-state" id="saveState" role="status" aria-live="polite"></span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="card intro" id="intro">
+    <h1>Google Ad Grants onboarding</h1>
+    <p>
+      This intake gives us everything we need to apply for — or take over — your
+      organization's Google Ad Grants account: up to <strong>$10,000 USD per month</strong>
+      in free Google Search advertising for eligible nonprofits.
+    </p>
+    <p>
+      It takes about <strong>10–15 minutes</strong>. Your answers save automatically in this
+      browser, so you can close the tab and pick it up later. Fields marked
+      <span class="req" aria-hidden="true">*</span> are required.
+    </p>
+  </div>
+
+  <div class="progress" aria-hidden="true">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <nav class="steps-nav" id="stepsNav" aria-label="Form sections"></nav>
+
+  <form id="onboardingForm" class="card" novalidate>
+
+    <!-- ================= STEP 1 — Organization ================= -->
+    <fieldset class="step" data-step-title="Organization" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 1 of 8</div>
+        <legend class="step-title">Organization details</legend>
+        <p>Tell us who you are. Use your legal registered details — Google verifies these against your nonprofit registration.</p>
+      </div>
+
+      <div class="grid">
+        <div class="field full">
+          <label for="orgLegalName">Legal organization name <span class="req">*</span></label>
+          <input type="text" id="orgLegalName" name="orgLegalName" data-label="Legal organization name" required autocomplete="organization" placeholder="As registered with the IRS or your national charity register" />
+          <p class="error-msg">Enter your organization's legal name.</p>
+        </div>
+
+        <div class="field">
+          <label for="orgDba">Public / trading name</label>
+          <input type="text" id="orgDba" name="orgDba" data-label="Public / trading name" placeholder="If different from the legal name" />
+        </div>
+
+        <div class="field">
+          <label for="orgWebsite">Website URL <span class="req">*</span></label>
+          <input type="url" id="orgWebsite" name="orgWebsite" data-label="Website URL" required placeholder="https://example.org" />
+          <p class="hint">Must be a domain your organization owns — Ad Grants ads cannot point anywhere else.</p>
+          <p class="error-msg">Enter a full website URL, including https://</p>
+        </div>
+
+        <div class="field">
+          <label for="orgCountry">Country of registration <span class="req">*</span></label>
+          <input type="text" id="orgCountry" name="orgCountry" data-label="Country of registration" required placeholder="United States" autocomplete="country-name" />
+          <p class="error-msg">Enter the country your nonprofit is registered in.</p>
+        </div>
+
+        <div class="field">
+          <label for="orgTaxId">EIN / charity registration number <span class="req">*</span></label>
+          <input type="text" id="orgTaxId" name="orgTaxId" data-label="EIN / charity registration number" required placeholder="12-3456789" />
+          <p class="error-msg">Enter your EIN or national charity registration number.</p>
+        </div>
+
+        <div class="field full">
+          <label for="orgAddress">Registered address <span class="req">*</span></label>
+          <textarea id="orgAddress" name="orgAddress" data-label="Registered address" required placeholder="Street, city, state/region, postal code"></textarea>
+          <p class="error-msg">Enter your registered address.</p>
+        </div>
+
+        <div class="field">
+          <label for="orgCategory">Cause area <span class="req">*</span></label>
+          <select id="orgCategory" name="orgCategory" data-label="Cause area" required>
+            <option value="">Select one…</option>
+            <option>Animal welfare</option>
+            <option>Arts &amp; culture</option>
+            <option>Civil rights &amp; advocacy</option>
+            <option>Community development</option>
+            <option>Disaster relief</option>
+            <option>Education</option>
+            <option>Environment &amp; conservation</option>
+            <option>Faith-based</option>
+            <option>Food security &amp; hunger</option>
+            <option>Health &amp; medical research</option>
+            <option>Housing &amp; homelessness</option>
+            <option>Human services</option>
+            <option>International development</option>
+            <option>Mental health</option>
+            <option>Veterans &amp; military families</option>
+            <option>Youth development</option>
+            <option>Other</option>
+          </select>
+          <p class="error-msg">Select the cause area that fits best.</p>
+        </div>
+
+        <div class="field">
+          <label for="orgStaffSize">Team size</label>
+          <select id="orgStaffSize" name="orgStaffSize" data-label="Team size">
+            <option value="">Select one…</option>
+            <option>All volunteer</option>
+            <option>1–5 staff</option>
+            <option>6–20 staff</option>
+            <option>21–50 staff</option>
+            <option>51–200 staff</option>
+            <option>200+ staff</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="orgAnnualBudget">Approximate annual operating budget</label>
+          <select id="orgAnnualBudget" name="orgAnnualBudget" data-label="Annual operating budget">
+            <option value="">Prefer not to say</option>
+            <option>Under $100k</option>
+            <option>$100k – $500k</option>
+            <option>$500k – $1M</option>
+            <option>$1M – $5M</option>
+            <option>$5M – $20M</option>
+            <option>Over $20M</option>
+          </select>
+          <p class="hint">Helps us right-size the account structure and reporting cadence. Never shared.</p>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= STEP 2 — Contact ================= -->
+    <fieldset class="step" data-step-title="Contact" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 2 of 8</div>
+        <legend class="step-title">Primary contact</legend>
+        <p>Who should we work with day to day? We'll send account access requests and monthly reporting here.</p>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="contactName">Full name <span class="req">*</span></label>
+          <input type="text" id="contactName" name="contactName" data-label="Contact name" required autocomplete="name" />
+          <p class="error-msg">Enter the primary contact's name.</p>
+        </div>
+
+        <div class="field">
+          <label for="contactTitle">Job title <span class="req">*</span></label>
+          <input type="text" id="contactTitle" name="contactTitle" data-label="Job title" required placeholder="Development Director" autocomplete="organization-title" />
+          <p class="error-msg">Enter their job title.</p>
+        </div>
+
+        <div class="field">
+          <label for="contactEmail">Email <span class="req">*</span></label>
+          <input type="email" id="contactEmail" name="contactEmail" data-label="Contact email" required autocomplete="email" placeholder="name@yourorg.org" />
+          <p class="hint">Ideally an address on your organization's domain — Google requires this for account verification.</p>
+          <p class="error-msg">Enter a valid email address.</p>
+        </div>
+
+        <div class="field">
+          <label for="contactPhone">Phone <span class="req">*</span></label>
+          <input type="tel" id="contactPhone" name="contactPhone" data-label="Contact phone" required autocomplete="tel" />
+          <p class="error-msg">Enter a contact phone number.</p>
+        </div>
+
+        <div class="field">
+          <label for="contactTimezone">Time zone</label>
+          <input type="text" id="contactTimezone" name="contactTimezone" data-label="Time zone" placeholder="America/New_York" />
+        </div>
+
+        <div class="field">
+          <label for="contactPreferred">Preferred contact method</label>
+          <select id="contactPreferred" name="contactPreferred" data-label="Preferred contact method">
+            <option value="">Select one…</option>
+            <option>Email</option>
+            <option>Phone call</option>
+            <option>Video call</option>
+            <option>Text / SMS</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <div class="group-label">Is there a second contact we should copy?</div>
+          <div class="choice-group">
+            <div class="choice-list cols">
+              <label class="choice"><input type="radio" name="hasSecondContact" value="Yes" data-label="Has second contact" /><span class="choice-text">Yes</span></label>
+              <label class="choice"><input type="radio" name="hasSecondContact" value="No" data-label="Has second contact" /><span class="choice-text">No</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field full" data-show-if="hasSecondContact=Yes" hidden>
+          <div class="grid">
+            <div class="field">
+              <label for="contact2Name">Second contact name <span class="req">*</span></label>
+              <input type="text" id="contact2Name" name="contact2Name" data-label="Second contact name" required />
+              <p class="error-msg">Enter the second contact's name.</p>
+            </div>
+            <div class="field">
+              <label for="contact2Email">Second contact email <span class="req">*</span></label>
+              <input type="email" id="contact2Email" name="contact2Email" data-label="Second contact email" required />
+              <p class="error-msg">Enter a valid email address.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= STEP 3 — Eligibility ================= -->
+    <fieldset class="step" data-step-title="Eligibility" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 3 of 8</div>
+        <legend class="step-title">Eligibility &amp; Google accounts</legend>
+        <p>Ad Grants requires a validated Google for Nonprofits account. Let's find out where you are in that chain.</p>
+      </div>
+
+      <div class="grid">
+        <div class="field full">
+          <div class="group-label">Nonprofit status <span class="req">*</span></div>
+          <div class="choice-group" data-group="nonprofitStatus">
+            <div class="choice-list">
+              <label class="choice"><input type="radio" name="nonprofitStatus" value="501(c)(3) in good standing" data-label="Nonprofit status" required /><span class="choice-text">Registered 501(c)(3) in good standing<small>Or the equivalent charity status in our country</small></span></label>
+              <label class="choice"><input type="radio" name="nonprofitStatus" value="Registered charity outside the US" data-label="Nonprofit status" /><span class="choice-text">Registered charity outside the US<small>Recognized by our national charity regulator</small></span></label>
+              <label class="choice"><input type="radio" name="nonprofitStatus" value="Application pending" data-label="Nonprofit status" /><span class="choice-text">Registration application pending</span></label>
+              <label class="choice"><input type="radio" name="nonprofitStatus" value="Not a registered nonprofit" data-label="Nonprofit status" /><span class="choice-text">Not a registered nonprofit</span></label>
+            </div>
+            <p class="error-msg">Select your nonprofit status.</p>
+          </div>
+
+          <div class="callout danger" data-show-if="nonprofitStatus=Not a registered nonprofit|Application pending" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+            <div>
+              <strong>Heads up — this may block the grant.</strong>
+              Google Ad Grants requires current, validated charity status. Keep filling this in: we'll review your case and tell you exactly what's needed, and we can look at alternatives in the meantime.
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider full" />
+
+        <div class="field full">
+          <div class="group-label">Google for Nonprofits account <span class="req">*</span></div>
+          <div class="choice-group" data-group="gfnStatus">
+            <div class="choice-list">
+              <label class="choice"><input type="radio" name="gfnStatus" value="Approved" data-label="Google for Nonprofits status" required /><span class="choice-text">Yes — approved and active</span></label>
+              <label class="choice"><input type="radio" name="gfnStatus" value="Pending" data-label="Google for Nonprofits status" /><span class="choice-text">Applied, waiting on approval</span></label>
+              <label class="choice"><input type="radio" name="gfnStatus" value="Not applied" data-label="Google for Nonprofits status" /><span class="choice-text">Not yet — we need help applying</span></label>
+              <label class="choice"><input type="radio" name="gfnStatus" value="Unsure" data-label="Google for Nonprofits status" /><span class="choice-text">Not sure</span></label>
+            </div>
+            <p class="error-msg">Select your Google for Nonprofits status.</p>
+          </div>
+        </div>
+
+        <div class="field" data-show-if="gfnStatus=Approved" hidden>
+          <label for="gfnMemberId">Google for Nonprofits member ID</label>
+          <input type="text" id="gfnMemberId" name="gfnMemberId" data-label="Google for Nonprofits member ID" />
+          <p class="hint">Found in your Google for Nonprofits account under "Account details".</p>
+        </div>
+
+        <div class="field" data-show-if="gfnStatus=Approved" hidden>
+          <label for="gfnAdminEmail">Google account email that owns it</label>
+          <input type="email" id="gfnAdminEmail" name="gfnAdminEmail" data-label="Google for Nonprofits admin email" />
+        </div>
+
+        <div class="field full" data-show-if="gfnStatus=Not applied|Unsure" hidden>
+          <div class="callout info">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>
+            <div>
+              <strong>We'll handle this with you.</strong>
+              Approval runs through a validation partner (TechSoup in the US) and usually takes 2–14 days. We just need a signatory who can confirm your registration details.
+            </div>
+          </div>
+        </div>
+
+        <div class="field full">
+          <label for="techsoupToken">TechSoup / validation token</label>
+          <input type="text" id="techsoupToken" name="techsoupToken" data-label="TechSoup validation token" placeholder="If you already have one" />
+        </div>
+
+        <hr class="divider full" />
+
+        <div class="field full">
+          <div class="group-label">Existing Google Ads account <span class="req">*</span></div>
+          <div class="choice-group" data-group="adsAccountStatus">
+            <div class="choice-list">
+              <label class="choice"><input type="radio" name="adsAccountStatus" value="Active Ad Grants account" data-label="Google Ads account status" required /><span class="choice-text">Yes — an active Ad Grants account<small>Already receiving the $10k/month grant</small></span></label>
+              <label class="choice"><input type="radio" name="adsAccountStatus" value="Suspended Ad Grants account" data-label="Google Ads account status" /><span class="choice-text">Yes — but it's suspended or paused<small>We need it reinstated</small></span></label>
+              <label class="choice"><input type="radio" name="adsAccountStatus" value="Paid Google Ads account only" data-label="Google Ads account status" /><span class="choice-text">Yes — a paid Google Ads account, not a grant</span></label>
+              <label class="choice"><input type="radio" name="adsAccountStatus" value="No account" data-label="Google Ads account status" /><span class="choice-text">No Google Ads account at all</span></label>
+            </div>
+            <p class="error-msg">Select your Google Ads account status.</p>
+          </div>
+        </div>
+
+        <div class="field" data-show-if="adsAccountStatus=Active Ad Grants account|Suspended Ad Grants account|Paid Google Ads account only" hidden>
+          <label for="adsCustomerId">Google Ads customer ID (CID)</label>
+          <input type="text" id="adsCustomerId" name="adsCustomerId" data-label="Google Ads customer ID" placeholder="123-456-7890" />
+        </div>
+
+        <div class="field" data-show-if="adsAccountStatus=Active Ad Grants account|Suspended Ad Grants account|Paid Google Ads account only" hidden>
+          <label for="adsMonthlySpend">Roughly how much of the grant do you use monthly?</label>
+          <select id="adsMonthlySpend" name="adsMonthlySpend" data-label="Monthly grant usage">
+            <option value="">Select one…</option>
+            <option>Under $500</option>
+            <option>$500 – $2,000</option>
+            <option>$2,000 – $5,000</option>
+            <option>$5,000 – $9,000</option>
+            <option>Close to the full $10,000</option>
+            <option>Not sure</option>
+          </select>
+        </div>
+
+        <div class="field full" data-show-if="adsAccountStatus=Suspended Ad Grants account" hidden>
+          <label for="suspensionReason">What triggered the suspension, if you know?</label>
+          <textarea id="suspensionReason" name="suspensionReason" data-label="Suspension reason" placeholder="e.g. CTR fell below 5%, policy violation notice, account inactivity…"></textarea>
+          <p class="hint">Most Ad Grants suspensions come from the 5% CTR rule or missing conversion tracking. Both are fixable.</p>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= STEP 4 — Website & tracking ================= -->
+    <fieldset class="step" data-step-title="Website" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 4 of 8</div>
+        <legend class="step-title">Website &amp; tracking</legend>
+        <p>Ad Grants accounts must report at least one meaningful conversion per month, so tracking has to be solid before we launch.</p>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="cms">Website platform <span class="req">*</span></label>
+          <select id="cms" name="cms" data-label="Website platform" required>
+            <option value="">Select one…</option>
+            <option>WordPress</option>
+            <option>Squarespace</option>
+            <option>Wix</option>
+            <option>Webflow</option>
+            <option>Drupal</option>
+            <option>Shopify</option>
+            <option>HubSpot</option>
+            <option>Custom build</option>
+            <option>Not sure</option>
+          </select>
+          <p class="error-msg">Select your website platform.</p>
+        </div>
+
+        <div class="field">
+          <label for="siteManager">Who maintains the website? <span class="req">*</span></label>
+          <select id="siteManager" name="siteManager" data-label="Website maintainer" required>
+            <option value="">Select one…</option>
+            <option>In-house staff</option>
+            <option>A volunteer</option>
+            <option>An external agency or freelancer</option>
+            <option>Nobody right now</option>
+          </select>
+          <p class="error-msg">Tell us who maintains the site.</p>
+        </div>
+
+        <div class="field full">
+          <div class="group-label">Can you add tracking code to the site? <span class="req">*</span></div>
+          <div class="choice-group" data-group="canAddTracking">
+            <div class="choice-list cols">
+              <label class="choice"><input type="radio" name="canAddTracking" value="Yes, easily" data-label="Can add tracking code" required /><span class="choice-text">Yes, easily</span></label>
+              <label class="choice"><input type="radio" name="canAddTracking" value="Yes, with developer help" data-label="Can add tracking code" /><span class="choice-text">Yes, with developer help</span></label>
+              <label class="choice"><input type="radio" name="canAddTracking" value="No" data-label="Can add tracking code" /><span class="choice-text">No</span></label>
+              <label class="choice"><input type="radio" name="canAddTracking" value="Not sure" data-label="Can add tracking code" /><span class="choice-text">Not sure</span></label>
+            </div>
+            <p class="error-msg">Let us know whether tracking code can be added.</p>
+          </div>
+        </div>
+
+        <div class="field full">
+          <div class="group-label">Which of these are already set up? <span class="hint">Select all that apply</span></div>
+          <div class="choice-list cols">
+            <label class="choice"><input type="checkbox" name="existingTools" value="Google Analytics 4" data-label="Existing tools" /><span class="choice-text">Google Analytics 4</span></label>
+            <label class="choice"><input type="checkbox" name="existingTools" value="Google Tag Manager" data-label="Existing tools" /><span class="choice-text">Google Tag Manager</span></label>
+            <label class="choice"><input type="checkbox" name="existingTools" value="Google Search Console" data-label="Existing tools" /><span class="choice-text">Google Search Console</span></label>
+            <label class="choice"><input type="checkbox" name="existingTools" value="Meta Pixel" data-label="Existing tools" /><span class="choice-text">Meta Pixel</span></label>
+            <label class="choice"><input type="checkbox" name="existingTools" value="Google Ads conversion tracking" data-label="Existing tools" /><span class="choice-text">Google Ads conversion tracking</span></label>
+            <label class="choice"><input type="checkbox" name="existingTools" value="None of these" data-label="Existing tools" /><span class="choice-text">None of these</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="ga4Property">GA4 property ID</label>
+          <input type="text" id="ga4Property" name="ga4Property" data-label="GA4 property ID" placeholder="G-XXXXXXXXXX" />
+        </div>
+
+        <div class="field">
+          <label for="donationPlatform">Donation platform</label>
+          <input type="text" id="donationPlatform" name="donationPlatform" data-label="Donation platform" placeholder="Givebutter, Classy, Donorbox, PayPal…" />
+          <p class="hint">Off-site donation pages need extra setup to record conversions.</p>
+        </div>
+
+        <div class="field full">
+          <label for="siteNotes">Anything else about the site we should know?</label>
+          <textarea id="siteNotes" name="siteNotes" data-label="Website notes" placeholder="Planned redesign, slow pages, no SSL, thin content, gated pages…"></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= STEP 5 — Mission ================= -->
+    <fieldset class="step" data-step-title="Mission" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 5 of 8</div>
+        <legend class="step-title">Mission &amp; audience</legend>
+        <p>This is what we turn into ad copy. Write it the way you'd say it out loud — we'll do the polishing.</p>
+      </div>
+
+      <div class="grid">
+        <div class="field full">
+          <label for="mission">Mission statement <span class="req">*</span></label>
+          <textarea id="mission" name="mission" data-label="Mission statement" required placeholder="What your organization exists to do, in a few sentences."></textarea>
+          <p class="error-msg">Tell us your mission.</p>
+        </div>
+
+        <div class="field full">
+          <label for="programs">Programs or services you want to promote <span class="req">*</span></label>
+          <textarea id="programs" name="programs" data-label="Programs to promote" required placeholder="One per line — e.g. after-school tutoring, emergency food boxes, free legal clinic"></textarea>
+          <p class="hint">Each one usually becomes its own campaign, so list them in priority order.</p>
+          <p class="error-msg">List at least one program or service.</p>
+        </div>
+
+        <div class="field full">
+          <label for="serviceArea">Geographic area you serve <span class="req">*</span></label>
+          <input type="text" id="serviceArea" name="serviceArea" data-label="Geographic service area" required placeholder="e.g. Cook County, IL — or nationwide" />
+          <p class="hint">Ad Grants requires geotargeting, so we need real boundaries rather than "everywhere".</p>
+          <p class="error-msg">Tell us where you operate.</p>
+        </div>
+
+        <div class="field full">
+          <div class="group-label">Who are we trying to reach? <span class="req">*</span> <span class="hint">Select all that apply</span></div>
+          <div class="choice-group" data-group="audiences">
+            <div class="choice-list cols">
+              <label class="choice"><input type="checkbox" name="audiences" value="People who need our services" data-label="Target audiences" /><span class="choice-text">People who need our services</span></label>
+              <label class="choice"><input type="checkbox" name="audiences" value="Individual donors" data-label="Target audiences" /><span class="choice-text">Individual donors</span></label>
+              <label class="choice"><input type="checkbox" name="audiences" value="Major donors / foundations" data-label="Target audiences" /><span class="choice-text">Major donors / foundations</span></label>
+              <label class="choice"><input type="checkbox" name="audiences" value="Volunteers" data-label="Target audiences" /><span class="choice-text">Volunteers</span></label>
+              <label class="choice"><input type="checkbox" name="audiences" value="Event attendees" data-label="Target audiences" /><span class="choice-text">Event attendees</span></label>
+              <label class="choice"><input type="checkbox" name="audiences" value="Corporate partners" data-label="Target audiences" /><span class="choice-text">Corporate partners</span></label>
+              <label class="choice"><input type="checkbox" name="audiences" value="Policymakers / advocates" data-label="Target audiences" /><span class="choice-text">Policymakers / advocates</span></label>
+              <label class="choice"><input type="checkbox" name="audiences" value="Job seekers" data-label="Target audiences" /><span class="choice-text">Job seekers</span></label>
+            </div>
+            <p class="error-msg">Pick at least one audience.</p>
+          </div>
+        </div>
+
+        <div class="field full">
+          <label for="audienceDetail">Describe your ideal audience in your own words</label>
+          <textarea id="audienceDetail" name="audienceDetail" data-label="Audience detail" placeholder="Age, situation, what they're worried about, what they search for when they need help…"></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= STEP 6 — Goals ================= -->
+    <fieldset class="step" data-step-title="Goals" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 6 of 8</div>
+        <legend class="step-title">Campaign goals &amp; keywords</legend>
+        <p>What does a win look like in 90 days? Ad Grants rewards accounts that track real conversions, so let's be specific.</p>
+      </div>
+
+      <div class="grid">
+        <div class="field full">
+          <div class="group-label">Primary objective <span class="req">*</span></div>
+          <div class="choice-group" data-group="primaryGoal">
+            <div class="choice-list">
+              <label class="choice"><input type="radio" name="primaryGoal" value="Online donations" data-label="Primary objective" required /><span class="choice-text">Increase online donations</span></label>
+              <label class="choice"><input type="radio" name="primaryGoal" value="Program enrollment / service uptake" data-label="Primary objective" /><span class="choice-text">Get more people into our programs<small>Service uptake, client referrals, applications</small></span></label>
+              <label class="choice"><input type="radio" name="primaryGoal" value="Volunteer recruitment" data-label="Primary objective" /><span class="choice-text">Recruit volunteers</span></label>
+              <label class="choice"><input type="radio" name="primaryGoal" value="Event registrations" data-label="Primary objective" /><span class="choice-text">Drive event registrations</span></label>
+              <label class="choice"><input type="radio" name="primaryGoal" value="Email list growth" data-label="Primary objective" /><span class="choice-text">Grow our email list</span></label>
+              <label class="choice"><input type="radio" name="primaryGoal" value="Awareness / advocacy" data-label="Primary objective" /><span class="choice-text">Build awareness for our cause</span></label>
+            </div>
+            <p class="error-msg">Pick your primary objective.</p>
+          </div>
+        </div>
+
+        <div class="field full">
+          <div class="group-label">Conversion actions to track <span class="req">*</span> <span class="hint">Select all that apply</span></div>
+          <div class="choice-group" data-group="conversions">
+            <div class="choice-list cols">
+              <label class="choice"><input type="checkbox" name="conversions" value="Donation completed" data-label="Conversion actions" /><span class="choice-text">Donation completed</span></label>
+              <label class="choice"><input type="checkbox" name="conversions" value="Contact form submitted" data-label="Conversion actions" /><span class="choice-text">Contact form submitted</span></label>
+              <label class="choice"><input type="checkbox" name="conversions" value="Volunteer signup" data-label="Conversion actions" /><span class="choice-text">Volunteer signup</span></label>
+              <label class="choice"><input type="checkbox" name="conversions" value="Event registration" data-label="Conversion actions" /><span class="choice-text">Event registration</span></label>
+              <label class="choice"><input type="checkbox" name="conversions" value="Newsletter signup" data-label="Conversion actions" /><span class="choice-text">Newsletter signup</span></label>
+              <label class="choice"><input type="checkbox" name="conversions" value="Phone call" data-label="Conversion actions" /><span class="choice-text">Phone call</span></label>
+              <label class="choice"><input type="checkbox" name="conversions" value="Resource / PDF download" data-label="Conversion actions" /><span class="choice-text">Resource / PDF download</span></label>
+              <label class="choice"><input type="checkbox" name="conversions" value="Application started" data-label="Conversion actions" /><span class="choice-text">Application started</span></label>
+            </div>
+            <p class="error-msg">Pick at least one conversion action.</p>
+          </div>
+        </div>
+
+        <div class="field full">
+          <label for="landingPages">Priority landing pages <span class="req">*</span></label>
+          <textarea id="landingPages" name="landingPages" data-label="Priority landing pages" required placeholder="One URL per line — the pages you most want traffic sent to"></textarea>
+          <p class="error-msg">Give us at least one landing page URL.</p>
+        </div>
+
+        <div class="field full">
+          <label for="keywords">Search terms your audience uses</label>
+          <textarea id="keywords" name="keywords" data-label="Target search terms" placeholder="One per line — e.g. free food pantry near me, how to foster a dog in Austin"></textarea>
+          <p class="hint">Full phrases work best. Ad Grants prohibits single-word keywords and overly generic terms.</p>
+        </div>
+
+        <div class="field full">
+          <label for="brandTerms">Your brand terms</label>
+          <input type="text" id="brandTerms" name="brandTerms" data-label="Brand terms" placeholder="Organization name, program names, acronyms — comma separated" />
+        </div>
+
+        <div class="field full">
+          <label for="peerOrgs">Similar organizations</label>
+          <textarea id="peerOrgs" name="peerOrgs" data-label="Similar organizations" placeholder="Names or URLs of nonprofits doing comparable work — useful for keyword research."></textarea>
+        </div>
+
+        <div class="field full">
+          <label for="successDefinition">What would make this a success 90 days from now?</label>
+          <textarea id="successDefinition" name="successDefinition" data-label="Definition of success" placeholder="e.g. 40 new monthly donors, 200 volunteer applications, 25% more program inquiries"></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= STEP 7 — Compliance ================= -->
+    <fieldset class="step" data-step-title="Compliance" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 7 of 8</div>
+        <legend class="step-title">Program policies &amp; access</legend>
+        <p>Ad Grants has rules that get accounts suspended when ignored. Please confirm you understand each one — we manage them for you, but the account is yours.</p>
+      </div>
+
+      <div class="policy-list">
+        <label class="policy-item">
+          <input type="checkbox" name="ack_ctr" value="Acknowledged" data-label="Acknowledged 5% CTR rule" required />
+          <span class="policy-text">
+            <strong>5% click-through rate, every month</strong>
+            <span>Accounts that miss 5% CTR for two consecutive months are deactivated. Reactivation is possible, but we'd rather not get there.</span>
+          </span>
+        </label>
+        <label class="policy-item">
+          <input type="checkbox" name="ack_keywords" value="Acknowledged" data-label="Acknowledged keyword rules" required />
+          <span class="policy-text">
+            <strong>Keyword restrictions</strong>
+            <span>No single-word keywords (brand names and a short list of exceptions aside), no overly generic terms, and nothing with a quality score below 3.</span>
+          </span>
+        </label>
+        <label class="policy-item">
+          <input type="checkbox" name="ack_conversions" value="Acknowledged" data-label="Acknowledged conversion tracking rule" required />
+          <span class="policy-text">
+            <strong>Valid conversion tracking is mandatory</strong>
+            <span>The account must record at least one meaningful conversion per month. This is why step 4 matters so much.</span>
+          </span>
+        </label>
+        <label class="policy-item">
+          <input type="checkbox" name="ack_structure" value="Acknowledged" data-label="Acknowledged account structure rules" required />
+          <span class="policy-text">
+            <strong>Account structure minimums</strong>
+            <span>At least two ad groups per campaign, two ads per ad group, and two sitelink extensions — plus geotargeting on every campaign.</span>
+          </span>
+        </label>
+        <label class="policy-item">
+          <input type="checkbox" name="ack_budget" value="Acknowledged" data-label="Acknowledged budget and bid caps" required />
+          <span class="policy-text">
+            <strong>$10,000/month cap and bid limits</strong>
+            <span>Roughly $329/day. Manual bids are capped at $2.00 CPC; smart bidding strategies are exempt from that cap, which is usually the better route.</span>
+          </span>
+        </label>
+        <label class="policy-item">
+          <input type="checkbox" name="ack_website" value="Acknowledged" data-label="Acknowledged website policy" required />
+          <span class="policy-text">
+            <strong>Website ownership &amp; content policy</strong>
+            <span>Ads may only send traffic to a domain you own. No commercial or affiliate offers, no ads served on your own site, and any revenue must support your mission.</span>
+          </span>
+        </label>
+        <label class="policy-item">
+          <input type="checkbox" name="ack_survey" value="Acknowledged" data-label="Acknowledged annual survey requirement" required />
+          <span class="policy-text">
+            <strong>Annual program survey</strong>
+            <span>Google requires a response each year to keep the grant active. We'll remind you when it's due.</span>
+          </span>
+        </label>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="grid">
+        <div class="field full">
+          <div class="group-label">Account access <span class="req">*</span></div>
+          <div class="choice-group" data-group="accessLevel">
+            <div class="choice-list">
+              <label class="choice"><input type="radio" name="accessLevel" value="Admin access" data-label="Account access level" required /><span class="choice-text">Grant Click2ai admin access<small>Fastest — we can fix policy issues without waiting on approvals</small></span></label>
+              <label class="choice"><input type="radio" name="accessLevel" value="Standard access" data-label="Account access level" /><span class="choice-text">Grant standard access<small>We can edit campaigns but not manage users or billing</small></span></label>
+              <label class="choice"><input type="radio" name="accessLevel" value="Read only for now" data-label="Account access level" /><span class="choice-text">Read-only for now<small>We'll audit first and discuss access after</small></span></label>
+              <label class="choice"><input type="radio" name="accessLevel" value="Need to discuss" data-label="Account access level" /><span class="choice-text">We need to discuss this internally</span></label>
+            </div>
+            <p class="error-msg">Choose an access level.</p>
+          </div>
+        </div>
+
+        <div class="field full">
+          <div class="group-label">Which brand assets can you share? <span class="hint">Select all that apply</span></div>
+          <div class="choice-list cols">
+            <label class="choice"><input type="checkbox" name="assets" value="Logo files" data-label="Available assets" /><span class="choice-text">Logo files</span></label>
+            <label class="choice"><input type="checkbox" name="assets" value="Brand guidelines" data-label="Available assets" /><span class="choice-text">Brand guidelines</span></label>
+            <label class="choice"><input type="checkbox" name="assets" value="Photography" data-label="Available assets" /><span class="choice-text">Photography</span></label>
+            <label class="choice"><input type="checkbox" name="assets" value="Impact statistics" data-label="Available assets" /><span class="choice-text">Impact statistics</span></label>
+            <label class="choice"><input type="checkbox" name="assets" value="Testimonials / stories" data-label="Available assets" /><span class="choice-text">Testimonials / stories</span></label>
+            <label class="choice"><input type="checkbox" name="assets" value="Existing ad copy" data-label="Available assets" /><span class="choice-text">Existing ad copy</span></label>
+          </div>
+        </div>
+
+        <div class="field full">
+          <label for="launchTiming">When would you like to launch?</label>
+          <select id="launchTiming" name="launchTiming" data-label="Desired launch timing">
+            <option value="">Select one…</option>
+            <option>As soon as possible</option>
+            <option>Within 30 days</option>
+            <option>Within 90 days</option>
+            <option>Tied to a specific campaign or event</option>
+            <option>Just exploring for now</option>
+          </select>
+        </div>
+
+        <div class="field full" data-show-if="launchTiming=Tied to a specific campaign or event" hidden>
+          <label for="launchDate">Key date</label>
+          <input type="date" id="launchDate" name="launchDate" data-label="Key date" />
+        </div>
+
+        <div class="field full">
+          <label for="additionalNotes">Anything else we should know?</label>
+          <textarea id="additionalNotes" name="additionalNotes" data-label="Additional notes" placeholder="Past agency experience, internal constraints, board expectations, questions for us…"></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= STEP 8 — Review ================= -->
+    <fieldset class="step" data-step-title="Review" hidden>
+      <div class="step-head">
+        <div class="step-eyebrow">Step 8 of 8</div>
+        <legend class="step-title">Review &amp; submit</legend>
+        <p>Check everything below, then submit. You can jump back to any section to make changes.</p>
+      </div>
+
+      <div id="reviewOutput"></div>
+
+      <hr class="divider" />
+
+      <div class="grid">
+        <div class="field full">
+          <label for="signatureName">Your name, as authorization <span class="req">*</span></label>
+          <input type="text" id="signatureName" name="signatureName" data-label="Signature" required placeholder="Type your full name" />
+          <p class="hint">Confirms you're authorized to submit this on behalf of your organization.</p>
+          <p class="error-msg">Type your full name to authorize this submission.</p>
+        </div>
+
+        <div class="field full">
+          <label class="choice">
+            <input type="checkbox" name="consent" value="Agreed" data-label="Consent" required />
+            <span class="choice-text">
+              I confirm the information above is accurate and authorize Click2ai to use it to apply for, audit, or manage our Google Ad Grants account.
+            </span>
+          </label>
+          <p class="error-msg">Please confirm before submitting.</p>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ================= Actions ================= -->
+    <div class="actions">
+      <button type="button" class="btn btn-ghost" id="backBtn">Back</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn btn-link" id="clearBtn">Clear saved draft</button>
+      <button type="button" class="btn btn-primary" id="nextBtn">Continue</button>
+      <button type="submit" class="btn btn-primary" id="submitBtn" hidden>Submit onboarding form</button>
+    </div>
+
+    <p class="form-error" id="formError" role="alert"></p>
+  </form>
+
+  <!-- ================= Success ================= -->
+  <div class="card done" id="successPanel" hidden>
+    <div class="done-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h2>Thanks — we've got everything.</h2>
+    <p id="successMessage">
+      A Click2ai strategist will review your submission and get back to you within
+      two business days with next steps and any gaps we spotted.
+    </p>
+    <div class="done-actions">
+      <button type="button" class="btn btn-ghost" id="downloadBtn">Download a copy (JSON)</button>
+      <button type="button" class="btn btn-ghost" id="printBtn">Print / save as PDF</button>
+    </div>
+  </div>
+
+  <p class="footnote">
+    Questions? Email <a href="mailto:hello@click2-ai.com">hello@click2-ai.com</a>.
+    Your draft is stored only in this browser until you submit.
+  </p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ------------------------------------------------------------------
+     Configuration
+     Set `endpoint` to a URL that accepts a JSON POST to wire this up to
+     a CRM, webhook, or serverless function. Left empty, the form falls
+     back to a downloadable JSON copy so nothing is ever lost.
+  ------------------------------------------------------------------ */
+  var CONFIG = {
+    endpoint: "",
+    storageKey: "click2ai:adgrants:draft:v1"
+  };
+
+  var form        = document.getElementById("onboardingForm");
+  var steps       = Array.prototype.slice.call(form.querySelectorAll(".step"));
+  var stepsNav    = document.getElementById("stepsNav");
+  var progressFill= document.getElementById("progressFill");
+  var backBtn     = document.getElementById("backBtn");
+  var nextBtn     = document.getElementById("nextBtn");
+  var submitBtn   = document.getElementById("submitBtn");
+  var clearBtn    = document.getElementById("clearBtn");
+  var formError   = document.getElementById("formError");
+  var saveState   = document.getElementById("saveState");
+  var reviewOutput= document.getElementById("reviewOutput");
+  var successPanel= document.getElementById("successPanel");
+  var intro       = document.getElementById("intro");
+
+  var current = 0;
+  var furthest = 0;
+  var lastPayload = null;
+  var booted = false;
+
+  /* ---------------- Conditional visibility ---------------- */
+
+  // Elements with data-show-if="fieldName=valueA|valueB" appear only when
+  // the named field currently holds one of those values.
+  var conditionals = Array.prototype.slice.call(form.querySelectorAll("[data-show-if]"));
+
+  function applyConditionals() {
+    conditionals.forEach(function (el) {
+      var expr  = el.getAttribute("data-show-if");
+      var parts = expr.split("=");
+      var name  = parts[0];
+      var wanted = (parts[1] || "").split("|");
+      var checked = form.querySelector('[name="' + name + '"]:checked');
+      var value;
+
+      if (checked) {
+        value = checked.value;
+      } else {
+        var plain = form.querySelector('[name="' + name + '"]');
+        value = plain && plain.type !== "radio" && plain.type !== "checkbox" ? plain.value : "";
+      }
+
+      var show = wanted.indexOf(value) !== -1;
+      el.hidden = !show;
+
+      // Fields inside a hidden block must not block validation.
+      Array.prototype.forEach.call(el.querySelectorAll("input, select, textarea"), function (f) {
+        f.disabled = !show;
+      });
+    });
+  }
+
+  /* ---------------- Validation ---------------- */
+
+  function fieldWrapper(el) {
+    return el.closest(".field") || el.closest(".choice-group") || el.parentElement;
+  }
+
+  function clearError(el) {
+    var wrap = fieldWrapper(el);
+    if (wrap) wrap.classList.remove("has-error");
+    el.removeAttribute("aria-invalid");
+  }
+
+  function showError(el) {
+    var wrap = fieldWrapper(el);
+    if (wrap) wrap.classList.add("has-error");
+    el.setAttribute("aria-invalid", "true");
+  }
+
+  function isVisible(el) {
+    return !el.disabled && el.offsetParent !== null;
+  }
+
+  // Radios and checkboxes validate as a named group, not per input.
+  function validateStep(stepEl) {
+    var invalid = [];
+    var seenGroups = {};
+
+    var controls = Array.prototype.slice.call(
+      stepEl.querySelectorAll("input[required], select[required], textarea[required]")
+    );
+
+    controls.forEach(function (el) {
+      if (!isVisible(el)) { clearError(el); return; }
+
+      if (el.type === "radio" || el.type === "checkbox") {
+        if (seenGroups[el.name]) return;
+        seenGroups[el.name] = true;
+
+        var group = Array.prototype.slice.call(form.querySelectorAll('[name="' + el.name + '"]'));
+        var anyChecked = group.some(function (g) { return g.checked; });
+        if (anyChecked) { group.forEach(clearError); }
+        else { showError(el); invalid.push(el); }
+        return;
+      }
+
+      if (!el.value.trim()) { showError(el); invalid.push(el); return; }
+
+      if (el.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(el.value.trim())) {
+        showError(el); invalid.push(el); return;
+      }
+
+      if (el.type === "url") {
+        var v = el.value.trim();
+        if (!/^https?:\/\//i.test(v)) { showError(el); invalid.push(el); return; }
+        try { new URL(v); } catch (e) { showError(el); invalid.push(el); return; }
+      }
+
+      clearError(el);
+    });
+
+    // Checkbox groups that require at least one selection but aren't
+    // marked required on every input.
+    var atLeastOne = ["audiences", "conversions"];
+    atLeastOne.forEach(function (name) {
+      var group = Array.prototype.slice.call(stepEl.querySelectorAll('[name="' + name + '"]'));
+      if (!group.length) return;
+      var anyChecked = group.some(function (g) { return g.checked; });
+      var wrap = group[0].closest(".choice-group");
+      if (anyChecked) { if (wrap) wrap.classList.remove("has-error"); }
+      else { if (wrap) wrap.classList.add("has-error"); invalid.push(group[0]); }
+    });
+
+    return invalid;
+  }
+
+  /* ---------------- Step navigation ---------------- */
+
+  function buildNav() {
+    steps.forEach(function (step, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "step-chip";
+      btn.innerHTML = '<span class="chip-num">' + (i + 1) + "</span>" +
+                      "<span>" + step.getAttribute("data-step-title") + "</span>";
+      btn.addEventListener("click", function () {
+        if (i <= furthest) goTo(i);
+      });
+      stepsNav.appendChild(btn);
+    });
+  }
+
+  function refreshNav() {
+    Array.prototype.forEach.call(stepsNav.children, function (btn, i) {
+      if (i === current) btn.setAttribute("aria-current", "step");
+      else btn.removeAttribute("aria-current");
+      btn.classList.toggle("is-done", i < furthest);
+      btn.disabled = i > furthest;
+    });
+    progressFill.style.width = ((current) / (steps.length - 1) * 100) + "%";
+  }
+
+  function goTo(index) {
+    current = Math.max(0, Math.min(index, steps.length - 1));
+    furthest = Math.max(furthest, current);
+
+    steps.forEach(function (s, i) { s.hidden = i !== current; });
+
+    var onLast = current === steps.length - 1;
+    backBtn.hidden = current === 0;
+    nextBtn.hidden = onLast;
+    submitBtn.hidden = !onLast;
+    intro.hidden = current !== 0;
+
+    if (onLast) renderReview();
+
+    formError.classList.remove("show");
+    refreshNav();
+    applyConditionals();
+    if (booted) saveDraft(); // persist position, not just field edits
+
+    var head = steps[current].querySelector(".step-title");
+    if (head) { head.setAttribute("tabindex", "-1"); head.focus({ preventScroll: true }); }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  nextBtn.addEventListener("click", function () {
+    var invalid = validateStep(steps[current]);
+    if (invalid.length) {
+      formError.textContent = invalid.length === 1
+        ? "One field still needs attention."
+        : invalid.length + " fields still need attention.";
+      formError.classList.add("show");
+      invalid[0].focus();
+      invalid[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    goTo(current + 1);
+  });
+
+  backBtn.addEventListener("click", function () { goTo(current - 1); });
+
+  /* ---------------- Review rendering ---------------- */
+
+  function labelFor(el) {
+    return el.getAttribute("data-label") || el.name;
+  }
+
+  function collect() {
+    var data = {};
+    Array.prototype.forEach.call(form.elements, function (el) {
+      if (!el.name || el.type === "submit" || el.type === "button") return;
+
+      var label = labelFor(el);
+
+      if (el.type === "checkbox") {
+        if (!data[label]) data[label] = [];
+        if (el.checked) data[label].push(el.value === "on" ? "Yes" : el.value);
+        return;
+      }
+      if (el.type === "radio") {
+        if (el.checked) data[label] = el.value;
+        else if (!(label in data)) data[label] = "";
+        return;
+      }
+      data[label] = el.value.trim();
+    });
+
+    // Collapse single-answer checkbox arrays into readable strings.
+    Object.keys(data).forEach(function (k) {
+      if (Array.isArray(data[k])) data[k] = data[k].join(", ");
+    });
+    return data;
+  }
+
+  function renderReview() {
+    reviewOutput.innerHTML = "";
+
+    steps.slice(0, steps.length - 1).forEach(function (step, i) {
+      var group = document.createElement("div");
+      group.className = "review-group";
+
+      var heading = document.createElement("h3");
+      heading.textContent = step.getAttribute("data-step-title");
+      var edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "review-edit";
+      edit.textContent = "Edit";
+      edit.addEventListener("click", function () { goTo(i); });
+      heading.appendChild(edit);
+      group.appendChild(heading);
+
+      var table = document.createElement("table");
+      table.className = "review-table";
+      var seen = {};
+
+      Array.prototype.forEach.call(step.querySelectorAll("input, select, textarea"), function (el) {
+        if (!el.name) return;
+        var label = labelFor(el);
+        if (seen[label]) return;
+        seen[label] = true;
+
+        var value;
+        if (el.type === "checkbox") {
+          var checked = Array.prototype.slice.call(step.querySelectorAll('[name="' + el.name + '"]:checked'));
+          value = checked.map(function (c) { return c.value === "on" ? "Yes" : c.value; }).join(", ");
+        } else if (el.type === "radio") {
+          var sel = step.querySelector('[name="' + el.name + '"]:checked');
+          value = sel ? sel.value : "";
+        } else {
+          value = el.value.trim();
+        }
+
+        // Skip rows whose field is currently hidden by a conditional.
+        if (el.disabled && !value) return;
+
+        var tr = document.createElement("tr");
+        var th = document.createElement("th");
+        th.textContent = label;
+        var td = document.createElement("td");
+        if (value) { td.textContent = value; }
+        else { td.textContent = "Not provided"; td.className = "empty"; }
+        tr.appendChild(th); tr.appendChild(td);
+        table.appendChild(tr);
+      });
+
+      if (table.children.length) {
+        group.appendChild(table);
+        reviewOutput.appendChild(group);
+      }
+    });
+  }
+
+  /* ---------------- Draft autosave ---------------- */
+
+  var saveTimer = null;
+
+  function saveDraft() {
+    try {
+      var snapshot = {};
+      Array.prototype.forEach.call(form.elements, function (el) {
+        if (!el.name) return;
+        if (el.type === "checkbox" || el.type === "radio") {
+          if (el.checked) {
+            if (!snapshot[el.name]) snapshot[el.name] = [];
+            snapshot[el.name].push(el.value);
+          }
+        } else {
+          snapshot[el.name] = el.value;
+        }
+      });
+      localStorage.setItem(CONFIG.storageKey, JSON.stringify({ step: current, data: snapshot }));
+      flashSaved();
+    } catch (e) { /* storage unavailable — form still works */ }
+  }
+
+  function flashSaved() {
+    saveState.innerHTML = '<span class="save-dot"></span> Draft saved';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { saveState.textContent = ""; }, 2200);
+  }
+
+  function restoreDraft() {
+    var raw;
+    try { raw = localStorage.getItem(CONFIG.storageKey); } catch (e) { return 0; }
+    if (!raw) return 0;
+
+    var parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { return 0; }
+    var data = parsed && parsed.data;
+    if (!data) return 0;
+
+    Object.keys(data).forEach(function (name) {
+      var value = data[name];
+      var els = Array.prototype.slice.call(form.querySelectorAll('[name="' + CSS.escape(name) + '"]'));
+      if (!els.length) return;
+
+      if (els[0].type === "checkbox" || els[0].type === "radio") {
+        var values = Array.isArray(value) ? value : [value];
+        els.forEach(function (el) { el.checked = values.indexOf(el.value) !== -1; });
+      } else {
+        els[0].value = value;
+      }
+    });
+
+    return Math.min(parsed.step || 0, steps.length - 1);
+  }
+
+  form.addEventListener("input", function () { applyConditionals(); saveDraft(); });
+  form.addEventListener("change", function () { applyConditionals(); saveDraft(); });
+
+  // Clear an error as soon as the user starts fixing the field.
+  form.addEventListener("input", function (e) {
+    if (e.target.getAttribute("aria-invalid")) clearError(e.target);
+  });
+  form.addEventListener("change", function (e) {
+    if (e.target.type === "radio" || e.target.type === "checkbox") {
+      var group = form.querySelectorAll('[name="' + CSS.escape(e.target.name) + '"]');
+      Array.prototype.forEach.call(group, clearError);
+      var wrap = e.target.closest(".choice-group");
+      if (wrap) wrap.classList.remove("has-error");
+    }
+  });
+
+  clearBtn.addEventListener("click", function () {
+    if (!confirm("Clear the saved draft and start over? This can't be undone.")) return;
+    try { localStorage.removeItem(CONFIG.storageKey); } catch (e) {}
+    form.reset();
+    furthest = 0;
+    applyConditionals();
+    goTo(0);
+  });
+
+  /* ---------------- Submit ---------------- */
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    // Re-validate every step, not just the last one.
+    var firstBadStep = -1;
+    var firstBadField = null;
+    steps.forEach(function (step, i) {
+      var invalid = validateStep(step);
+      if (invalid.length && firstBadStep === -1) {
+        firstBadStep = i;
+        firstBadField = invalid[0];
+      }
+    });
+
+    if (firstBadStep !== -1) {
+      furthest = Math.max(furthest, firstBadStep);
+      goTo(firstBadStep);
+      formError.textContent = "Some required fields are still missing — we've jumped you to the first one.";
+      formError.classList.add("show");
+      if (firstBadField) {
+        firstBadField.focus();
+        firstBadField.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
+    var payload = {
+      submittedAt: new Date().toISOString(),
+      source: "Click2ai — Google Ad Grants Onboarding Form",
+      responses: collect()
+    };
+    lastPayload = payload;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting…";
+
+    function finish(message) {
+      try { localStorage.removeItem(CONFIG.storageKey); } catch (err) {}
+      form.hidden = true;
+      intro.hidden = true;
+      document.querySelector(".progress").hidden = true;
+      stepsNav.hidden = true;
+      if (message) document.getElementById("successMessage").textContent = message;
+      successPanel.hidden = false;
+      successPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (CONFIG.endpoint) {
+      fetch(CONFIG.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("Request failed: " + res.status);
+          finish();
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Submit onboarding form";
+          formError.textContent =
+            "We couldn't reach the server. Download a copy below and email it to hello@click2-ai.com, or try again.";
+          formError.classList.add("show");
+          downloadPayload();
+        });
+    } else {
+      // No endpoint configured — hand the client their data so it isn't lost.
+      finish(
+        "Your responses are ready to send. Download the copy below and email it to " +
+        "hello@click2-ai.com, and a strategist will follow up within two business days."
+      );
+      downloadPayload();
+    }
+  });
+
+  function downloadPayload() {
+    if (!lastPayload) lastPayload = {
+      submittedAt: new Date().toISOString(),
+      source: "Click2ai — Google Ad Grants Onboarding Form",
+      responses: collect()
+    };
+    var org = (lastPayload.responses["Legal organization name"] || "onboarding")
+      .replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+    var blob = new Blob([JSON.stringify(lastPayload, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "click2ai-ad-grants-" + org + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  document.getElementById("downloadBtn").addEventListener("click", downloadPayload);
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+
+  /* ---------------- Boot ---------------- */
+
+  buildNav();
+  var restoredStep = restoreDraft();
+  furthest = restoredStep;
+  applyConditionals();
+  goTo(restoredStep);
+  booted = true;
+  if (restoredStep > 0) flashSaved();
+})();
+</script>
+</body>
+</html>
